@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@3"></script>
+    <style>
+        .button {
+            aspect-ratio: 1;
+            height: 100px;
+            display: grid;
+            place-items: center;
+            font-size: 50px;
+            background: green;
+            cursor: pointer;
+            border-radius: 100vh;
+            transition: all 400ms;
+        }
+
+        .button:hover {
+            background: red;
+        }
+    </style>
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-size: 50px;
+        }
+
+        #app {
+            padding-top: 20px;
+            display: grid;
+            gap: 100px;
+            place-items: center;
+        }
+
+        .center {
+            display: grid;
+            place-items: center;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .back, .reset {
+            grid-column-start: 1;
+            grid-column-end: -1;
+            width: 330px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="center">
+        <div class="buttons">
+            <div class="button back" @click="back()">Terug</div>
+            <div class="button" @click="click('A')">A</div>
+            <div class="button" @click="click('B')">B</div>
+            <div class="button" @click="click('C')">C</div>
+            <div class="button" @click="click('D')">D</div>
+            <div class="button" @click="click('E')">E</div>
+            <div class="button" @click="click('F')">F</div>
+            <div class="button reset" @click="reset()">Reset</div>
+        </div>
+    </div>
+    <div class="result" v-html="text"></div>
+</div>
+<script>
+    Vue.createApp({
+        data: () => ({
+            items: ['a']
+        }),
+        mounted() {
+            try {
+                const data = localStorage.getItem('data');
+                if (data != null) {
+                    this.items = JSON.parse(data)
+                }
+            } catch (ignore) {
+            }
+        },
+        methods: {
+            click(item) {
+                this.items.push(item);
+            },
+            back() {
+                this.items.splice(this.items.length - 1, 1)
+            },
+            reset() {
+                if (!confirm('Are u sure?')) return
+
+                this.items = [];
+            }
+        },
+        watch: {
+            items: {
+                deep: true,
+                handler() {
+                    localStorage.setItem('data', JSON.stringify(this.items));
+                }
+            }
+        },
+        computed: {
+            text() {
+                return Object.entries(this.items)
+                    .map(([index, item]) => `${parseInt(index, 10) + 1}: ${item}`)
+                    .join('<br/>');
+            }
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>

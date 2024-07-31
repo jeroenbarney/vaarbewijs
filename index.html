@@ -111,6 +111,7 @@
         computed: {
             text() {
                 return Object.entries(this.items)
+                    .reverse()
                     .map(([index, item]) => `${parseInt(index, 10) + 1}: ${item}`)
                     .join('<br/>');
             }

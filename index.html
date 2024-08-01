@@ -65,8 +65,9 @@
     <div class="center">
         <div class="buttons">
             <button class="button back" @click="back()">Terug</button>
-            <template v-for="(_,i) in [...Array(9)]">
-                <button @click="click(String.fromCharCode(i + 65))" class="button">{{ String.fromCharCode(i + 65) }}</button>
+            <template v-for="item in buttons">
+                <button @click="click(item)" class="button">{{ item }}
+                </button>
             </template>
             <button class="button reset" @click="reset()">Reset</button>
         </div>
@@ -109,6 +110,9 @@
             }
         },
         computed: {
+            buttons() {
+                return [...Array(9)].map((_, index) => String.fromCharCode(65 + index));
+            },
             text() {
                 return Object.entries(this.items)
                     .reverse()

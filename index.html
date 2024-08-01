@@ -64,11 +64,11 @@
 <div id="app">
     <div class="center">
         <div class="buttons">
-            <div class="button back" @click="back()">Terug</div>
+            <button class="button back" @click="back()">Terug</button>
             <template v-for="(_,i) in [...Array(9)]">
                 <button @click="click(String.fromCharCode(i + 65))" class="button">{{ String.fromCharCode(i + 65) }}</button>
             </template>
-            <div class="button reset" @click="reset()">Reset</div>
+            <button class="button reset" @click="reset()">Reset</button>
         </div>
     </div>
     <div class="result" v-html="text"></div>

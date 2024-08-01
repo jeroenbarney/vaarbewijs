@@ -18,6 +18,9 @@
             cursor: pointer;
             border-radius: 100vh;
             transition: all 400ms;
+            appearance: none;
+            border: none;
+            outline: none;
         }
 
         .button:hover {
@@ -62,12 +65,9 @@
     <div class="center">
         <div class="buttons">
             <div class="button back" @click="back()">Terug</div>
-            <div class="button" @click="click('A')">A</div>
-            <div class="button" @click="click('B')">B</div>
-            <div class="button" @click="click('C')">C</div>
-            <div class="button" @click="click('D')">D</div>
-            <div class="button" @click="click('E')">E</div>
-            <div class="button" @click="click('F')">F</div>
+            <template v-for="(_,i) in [...Array(9)]">
+                <button @click="click(String.fromCharCode(i + 65))" class="button">{{ String.fromCharCode(i + 65) }}</button>
+            </template>
             <div class="button reset" @click="reset()">Reset</div>
         </div>
     </div>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="../vue.js"></script>
+    <link rel="stylesheet" href="../bootstrap.css">
+    <style>
+        .box {
+            --base: 60px;
+            height: 20px;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .short {
+            width: calc(var(--base) * 1);
+            background: #00a4f0;
+        }
+
+        .long {
+            width: calc(var(--base) * 2);
+            background: #26b2b0;
+        }
+
+        .very-short {
+            width: calc(var(--base) * 0.5);
+            background: #8a38d4;
+        }
+
+        .optional {
+            margin: 0 5px;
+        }
+
+        .optional::before {
+            content: "(";
+            left: -7px;
+        }
+
+        .optional::after {
+            content: ")";
+            right: -7px;
+        }
+
+        .optional::before,
+        .optional::after {
+            position: absolute;
+            top: -15px;
+            font-size: 30px;
+        }
+
+        .tussenpoos {
+            width: calc(var(--base) * 4);
+        }
+
+        #app {
+            width: 800px;
+        }
+    </style>
+</head>
+<body class="d-flex min-vh-100 align-items-center justify-content-center">
+<div id="app">
+    <div v-if="allDone">
+        <h1>Allemaal klaar</h1>
+        <div>Je hebt er in totaal <span class="text-success">{{correct}} goed</span> en <span class="text-danger">{{incorrect}} fout</span>
+        </div>
+        <button class="btn btn-success" @click="restart()">Klik hier om opnieuw te beginnen</button>
+    </div>
+    <div v-else>
+        <div class="progress" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0">
+            <div class="progress-bar bg-success" :style="`width: ${correct / questions.length * 100}%`">{{correct}}
+            </div>
+            <div class="progress-bar bg-danger" :style="`width: ${incorrect / questions.length * 100}%`">{{incorrect}}
+            </div>
+        </div>
+        <div class="progress" style="border-top-left-radius: 0; border-top-right-radius: 0">
+            <div class="progress-bar bg-info" :style="`width: ${(correct + incorrect) / questions.length * 100}%`">
+                {{(correct + incorrect)}} / {{ questions.length }}
+            </div>
+        </div>
+        <h2>{{ question.question }}</h2>
+        <img :src="question.img" alt="">
+        <ul>
+            <li v-for="answer in answers">
+                <button @click="checkAnswer(answer)" type="button" class="btn btn-link">{{answer}}</button>
+            </li>
+        </ul>
+        <div v-if="checked">
+            <div class="text-success fw-bold" v-if="checked === question.answer">Je hebt het goed</div>
+            <div v-else class="fw-bold">
+                <div class="text-danger">Je hebt het fout!</div>
+                Jouw antwoord was <span class="text-danger">"{{ checked }}"</span> <br>
+                en het goede antwoord was <span class="text-success">"{{ question.answer }}"</span>
+            </div>
+            <button class="btn btn-info" @click="setRandomQuestion()">Volgende</button>
+        </div>
+    </div>
+</div>
+<script>
+    Array.prototype.shuffle = function () {
+        let cIndex = this.length;
+        while (cIndex > 0) {
+            const rIndex = Math.floor(Math.random() * this.length);
+            cIndex--;
+
+            [this[cIndex], this[rIndex]] = [this[rIndex], this[cIndex]];
+        }
+        return this;
+    }
+    Array.prototype.add = function (item) {
+        this.push(item);
+        return this;
+    }
+
+    Vue.createApp({
+        mounted() {
+            this.setRandomQuestion();
+        },
+        methods: {
+            restart() {
+                this.done = [];
+                this.correct = 0;
+                this.incorrect = 0;
+                this.setRandomQuestion();
+            },
+            setRandomQuestion() {
+                if (this.allDone) {
+                    return
+                }
+                this.checked = null;
+                do {
+                    this.pointer = Math.floor(Math.random() * this.questions.length);
+                } while (this.done.indexOf(this.pointer) !== -1);
+                this.done.push(this.pointer);
+
+                this.answers = this.questions.map(item => item.answer)
+                    .filter(item => item !== this.question.answer)
+                    .shuffle()
+                    .splice(0, 3)
+                    .add(this.question.answer)
+                    .shuffle();
+            },
+            checkAnswer(answer) {
+                if (this.checked != null)
+                    return
+
+                this.checked = answer;
+                answer === this.question.answer ? this.correct++ : this.incorrect++;
+            }
+        },
+        computed: {
+            question() {
+                return this.questions[this.pointer];
+            },
+            allDone() {
+                return this.done.length === this.questions.length;
+            }
+        },
+        data: () => ({
+            checked: null,
+            pointer: 0,
+            done: [],
+            answers: [],
+            correct: 0,
+            incorrect: 0,
+            questions: [
+                {
+                    "question": "Reeks flikkerlichten elke 1/4 seconde",
+                    "answer": "VQ (Very Quick) - Snel flikkerlicht",
+                    "title": "VQ (Very Quick) - Snel flikkerlicht: Reeks flikkerlichten elke 1/4 seconde",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9Ijc1IiBoZWlnaHQ9IjgwIj4KICAgICAgICAgICAgPHJlY3Qgd2lkdGg9IjE1IiBoZWlnaHQ9IjY1IiBmaWxsPSIjM2QzZDNiIi8+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSI2MCIgeD0iMTUiIGhlaWdodD0iNjUiIGZpbGw9IiNlMGUwNTQiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2JnKSIgcng9IjIwIiByeT0iMjAiLz4KPC9zdmc+"
+                },
+                {
+                    "question": "Reeks flikkerlichten elke 1/2 seconde",
+                    "answer": "Q (Quick) - Flikkerlicht",
+                    "title": "Q (Quick) - Flikkerlicht: Reeks flikkerlichten elke 1/2 seconde",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjkwIiBoZWlnaHQ9IjgwIj4KICAgICAgICAgICAgPHJlY3Qgd2lkdGg9IjMwIiBoZWlnaHQ9IjY1IiBmaWxsPSIjM2QzZDNiIi8+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSI2MCIgeD0iMzAiIGhlaWdodD0iNjUiIGZpbGw9IiNlMGUwNTQiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2JnKSIgcng9IjIwIiByeT0iMjAiLz4KPC9zdmc+"
+                },
+                {
+                    "question": "Onderbroken licht elke seconde dat korter aan is dan uit",
+                    "answer": "Fl (Flash) - Schitterlicht",
+                    "title": "Fl (Flash) - Schitterlicht: Onderbroken licht elke seconde dat korter aan is dan uit",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEzNSIgaGVpZ2h0PSI4MCI+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSI3NSIgaGVpZ2h0PSI2NSIgZmlsbD0iIzNkM2QzYiIvPgogICAgICAgICAgICA8cmVjdCB3aWR0aD0iNjAiIHg9Ijc1IiBoZWlnaHQ9IjY1IiBmaWxsPSIjZTBlMDU0Ii8+CiAgICAgICAgPC9wYXR0ZXJuPgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNiZykiIHJ4PSIyMCIgcnk9IjIwIi8+Cjwvc3ZnPg=="
+                },
+                {
+                    "question": "Onderbroken licht dat elke 2 seconden korter aan is dan uit",
+                    "answer": "LFl (Long flash) - Lang schitterlicht",
+                    "title": "LFl (Long flash) - Lang schitterlicht: Onderbroken licht dat elke 2 seconden korter aan is dan uit",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI4MCI+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iNjUiIGZpbGw9IiMzZDNkM2IiLz4KICAgICAgICAgICAgPHJlY3Qgd2lkdGg9IjYwIiB4PSIyMDAiIGhlaWdodD0iNjUiIGZpbGw9IiNlMGUwNTQiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2JnKSIgcng9IjIwIiByeT0iMjAiLz4KPC9zdmc+"
+                },
+                {
+                    "question": "Onderbroken licht dat net zo lang aan is, als uit. (ISO 6 = 3 seconden aan, 3 seconden uit)",
+                    "answer": "ISO (ISOphase) - isofaselicht",
+                    "title": "ISO (ISOphase) - isofaselicht: Onderbroken licht dat net zo lang aan is, als uit. (ISO 6 = 3 seconden aan, 3 seconden uit)",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEwMTIiIGhlaWdodD0iODAiPgogICAgICAgICAgICA8cmVjdCB3aWR0aD0iNTA2IiBoZWlnaHQ9IjY1IiBmaWxsPSIjZTBlMDU0Ii8+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSI1MDYiIHg9IjUwNiIgaGVpZ2h0PSI2NSIgZmlsbD0iIzNkM2QzYiIvPgogICAgICAgIDwvcGF0dGVybj4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYmcpIiByeD0iMjAiIHJ5PSIyMCIvPgo8L3N2Zz4="
+                },
+                {
+                    "question": "Onderbroken licht dat langer aan is dan uit",
+                    "answer": "OC (Occulting) - OC-licht",
+                    "title": "OC (Occulting) - OC-licht: Onderbroken licht dat langer aan is dan uit",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJiZyIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjUiPgogICAgICAgICAgICA8cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjY1IiBmaWxsPSIjZTBlMDU0Ii8+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSIzMDAiIHg9IjkwMCIgaGVpZ2h0PSI2NSIgZmlsbD0iIzNkM2QzYiIvPgogICAgICAgIDwvcGF0dGVybj4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiByeD0iMjAiIHJ5PSIyMCIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2JnKSIgLz4KPC9zdmc+"
+                },
+                {
+                    "question": "Vast brandend licht",
+                    "answer": "F (Fixed) - Vast licht",
+                    "title": "F (Fixed) - Vast licht: Vast brandend licht",
+                    "img": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDM4IDY1Ij4KICAgIDxwYXRoIGQ9Ik0wIDIwYTIwIDIwIDAgMCAxIDIwIC0yMGwyOTk4IDBhMjAgMjAgMCAwIDEgMjAgMjBsMCAyNWEyMCAyMCAwIDAgMSAtMjAgMjBsLTI5OTggMGEyMCAyMCAwIDAgMSAtMjAgLTIweiIKICAgICAgICAgIGZpbGw9IiNlMGUwNTQiLz4KPC9zdmc+"
+                }
+            ]
+        })
+    }).mount('#app')
+</script>
+</body>
+</html>

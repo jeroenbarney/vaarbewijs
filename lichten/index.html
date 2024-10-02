@@ -56,12 +56,6 @@
             width: calc(var(--base) * 4);
         }
 
-        /*body {*/
-        /*    display: grid;*/
-        /*    place-content: center;*/
-        /*    min-height: 100vh;*/
-        /*}*/
-
         #app {
             width: 800px;
         }
@@ -136,6 +130,8 @@
         methods: {
             restart() {
                 this.done = [];
+                this.correct = 0;
+                this.incorrect = 0;
                 this.setRandomQuestion();
             },
             setRandomQuestion() {

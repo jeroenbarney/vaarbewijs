@@ -6,122 +6,19 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-<!--    <script src="https://unpkg.com/vue@3"></script>-->
-    <script src="./vue.js"></script>
-    <style>
-        .button {
-            aspect-ratio: 1;
-            height: 100px;
-            display: grid;
-            place-items: center;
-            font-size: 50px;
-            background: green;
-            cursor: pointer;
-            border-radius: 100vh;
-            transition: all 400ms;
-            appearance: none;
-            border: none;
-            outline: none;
-        }
-
-        .button:hover {
-            background: red;
-        }
-    </style>
-    <style>
-        body {
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            font-size: 50px;
-        }
-
-        #app {
-            padding-top: 20px;
-            display: grid;
-            gap: 100px;
-            place-items: center;
-        }
-
-        .center {
-            display: grid;
-            place-items: center;
-        }
-
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .back, .reset {
-            grid-column-start: 1;
-            grid-column-end: -1;
-            width: 330px;
-        }
-    </style>
+    <link rel="stylesheet" href="./bootstrap.css">
 </head>
-<body>
-<div id="app">
-    <div class="center">
-        <div class="buttons">
-            <button class="button back" @click="back()">Terug</button>
-            <template v-for="item in buttons">
-                <button @click="click(item)" class="button">{{ item }}
-                </button>
-            </template>
-            <button class="button reset" @click="reset()">Reset</button>
-        </div>
-    </div>
-    <div class="result" v-html="text"></div>
-</div>
-<script>
-    Vue.createApp({
-        data: () => ({
-            items: []
-        }),
-        mounted() {
-            try {
-                const data = localStorage.getItem('data');
-                if (data != null) {
-                    this.items = JSON.parse(data)
-                }
-            } catch (ignore) {
-            }
-        },
-        methods: {
-            click(item) {
-                this.items.push(item);
-            },
-            back() {
-                this.items.splice(this.items.length - 1, 1)
-            },
-            reset() {
-                if (!confirm('Are u sure?')) return
-
-                this.items = [];
-            }
-        },
-        watch: {
-            items: {
-                deep: true,
-                handler() {
-                    localStorage.setItem('data', JSON.stringify(this.items));
-                }
-            }
-        },
-        computed: {
-            buttons() {
-                return [...Array(9)].map((_, index) => String.fromCharCode(65 + index));
-            },
-            text() {
-                return Object.entries(this.items)
-                    .reverse()
-                    .map(([index, item]) => `${parseInt(index, 10) + 1}: ${item}`)
-                    .join('<br/>');
-            }
-        }
-    }).mount('#app')
-</script>
+<body class="min-vh-100 d-flex justify-content-center align-items-center">
+<ul class="nav flex-column">
+    <li class="nav-item">
+        <a class="nav-link" href="/examenvragen">Examenvragen</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/geluidsseinen">Geluidsseinen</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/lichtseinen">Lichtseinen</a>
+    </li>
+</ul>
 </body>
 </html>

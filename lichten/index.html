@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./vue.js"></script>
+    <link rel="stylesheet" href="/bootstrap.css">
+    <style>
+        .box {
+            --base: 60px;
+            height: 20px;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .short {
+            width: calc(var(--base) * 1);
+            background: #00a4f0;
+        }
+
+        .long {
+            width: calc(var(--base) * 2);
+            background: #26b2b0;
+        }
+
+        .very-short {
+            width: calc(var(--base) * 0.5);
+            background: #8a38d4;
+        }
+
+        .optional {
+            margin: 0 5px;
+        }
+
+        .optional::before {
+            content: "(";
+            left: -15px;
+        }
+
+        .optional::after {
+            content: ")";
+            right: -15px;
+        }
+
+        .optional::before,
+        .optional::after {
+            position: absolute;
+            top: -7px;
+            font-size: 30px;
+        }
+
+        .tussenpoos {
+            width: calc(var(--base) * 4);
+        }
+
+        /*body {*/
+        /*    display: grid;*/
+        /*    place-content: center;*/
+        /*    min-height: 100vh;*/
+        /*}*/
+
+        #app {
+            width: 800px;
+        }
+    </style>
+</head>
+<body class="d-flex min-vh-100 align-items-center justify-content-center">
+<div id="app">
+    <div v-if="allDone">
+        <h1>Allemaal klaar</h1>
+        <div>Je hebt er in totaal <span class="text-success">{{correct}} goed</span> en <span class="text-danger">{{incorrect}} fout</span>
+        </div>
+        <button class="btn btn-success" @click="restart()">Klik hier om opnieuw te beginnen</button>
+    </div>
+    <div v-else>
+        <div class="progress" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0">
+            <div class="progress-bar bg-success" :style="`width: ${correct / questions.length * 100}%`">{{correct}}
+            </div>
+            <div class="progress-bar bg-danger" :style="`width: ${incorrect / questions.length * 100}%`">{{incorrect}}
+            </div>
+        </div>
+        <div class="progress" style="border-top-left-radius: 0; border-top-right-radius: 0">
+            <div class="progress-bar bg-info" :style="`width: ${(correct + incorrect) / questions.length * 100}%`">
+                {{(correct + incorrect)}} / {{ questions.length }}
+            </div>
+        </div>
+        <h2>{{ question.question }}</h2>
+        <div style="display: flex; gap: 5px; margin: 10px 0">
+            <template v-for="item in question.data">
+                <div v-if="item === 1" class="box short"></div>
+                <div v-if="item === 1.5" class="box short optional"></div>
+                <div v-if="item === 4" class="box long"></div>
+                <div v-if="item === 0.25" class="box very-short"></div>
+                <div v-if="item === 60" class="box tussenpoos"></div>
+            </template>
+        </div>
+        <ul>
+            <li v-for="answer in answers">
+                <button @click="checkAnswer(answer)" type="button" class="btn btn-link">{{answer}}</button>
+            </li>
+        </ul>
+        <div v-if="checked">
+            <div class="text-success fw-bold" v-if="checked === question.answer">Je hebt het goed</div>
+            <div v-else class="fw-bold">
+                <div class="text-danger">Je hebt het fout!</div>
+                Jouw antwoord was <span class="text-danger">"{{ checked }}"</span> <br>
+                en het goede antwoord was <span class="text-success">"{{ question.answer }}"</span>
+            </div>
+            <button class="btn btn-info" @click="setRandomQuestion()">Volgende</button>
+        </div>
+    </div>
+</div>
+<script>
+    Array.prototype.shuffle = function () {
+        let cIndex = this.length;
+        while (cIndex > 0) {
+            const rIndex = Math.floor(Math.random() * this.length);
+            cIndex--;
+
+            [this[cIndex], this[rIndex]] = [this[rIndex], this[cIndex]];
+        }
+        return this;
+    }
+    Array.prototype.add = function (item) {
+        this.push(item);
+        return this;
+    }
+
+    Vue.createApp({
+        mounted() {
+            this.setRandomQuestion();
+        },
+        methods: {
+            restart() {
+                this.done = [];
+                this.setRandomQuestion();
+            },
+            setRandomQuestion() {
+                if (this.allDone) {
+                    return
+                }
+                this.checked = null;
+                do {
+                    this.pointer = Math.floor(Math.random() * this.questions.length);
+                } while (this.done.indexOf(this.pointer) !== -1);
+                this.done.push(this.pointer);
+
+                this.answers = this.questions.map(item => item.answer)
+                    .filter(item => item !== this.question.answer)
+                    .shuffle()
+                    .splice(0, 3)
+                    .add(this.question.answer)
+                    .shuffle();
+            },
+            checkAnswer(answer) {
+                if (this.checked != null)
+                    return
+
+                this.checked = answer;
+                answer === this.question.answer ? this.correct++ : this.incorrect++;
+            }
+        },
+        computed: {
+            question() {
+                return this.questions[this.pointer];
+            },
+            allDone() {
+                return this.done.length === this.questions.length;
+            }
+        },
+        data: () => ({
+            checked: null,
+            pointer: 0,
+            done: [],
+            answers: [],
+            correct: 0,
+            incorrect: 0,
+            questions: [
+                {
+                    question: '1x kort',
+                    answer: 'Ik ga stuurboord',
+                    data: [1],
+                }, {
+                    question: '2x kort',
+                    answer: 'Ik ga bakboord',
+                    data: [1, 1],
+                }, {
+                    question: '3x kort',
+                    answer: 'Ik sla achteruit',
+                    data: [1, 1, 1],
+                }, {
+                    question: '4x kort',
+                    answer: 'Ik kan niet manoeuvreren',
+                    data: [1, 1, 1, 1],
+                }, {
+                    question: '5x kort',
+                    answer: 'Je kunt niet voorbij lopen',
+                    data: [1, 1, 1, 1, 1],
+                }, {
+                    question: '1x lang',
+                    answer: 'Attentiesein',
+                    data: [4],
+                }, {
+                    question: '1x lang - 1 of 2x kort',
+                    answer: 'Ik ga keren over stuurboord / (bakboord)',
+                    data: [4, 1, 1.5],
+                }, {
+                    question: '2x lang - 1 of 2x kort',
+                    answer: 'Ik ga oplopen over stuurdboord / (bakboord)',
+                    data: [4, 4, 1, 1.5],
+                }, {
+                    question: '3x lang',
+                    answer: 'Ik ga oversteken',
+                    data: [4, 4, 4],
+                }, {
+                    question: '3x lang - 1 of 2x kort',
+                    answer: 'Ik ga een haven of nevenwater in-uitvaren stuurboord/(bakboord)',
+                    data: [4, 4, 4, 1, 1.5],
+                }, {
+                    question: 'Reeks lang',
+                    answer: 'Noodsein',
+                    data: [4, 4, 4, 4, 4],
+                }, {
+                    question: 'Reeks zeer kort',
+                    answer: 'Gevaar voor aanvaring',
+                    data: [...Array(16)].map(() => 0.25),
+                }, {
+                    question: 'Reeks kort lang',
+                    answer: 'Blijf weg! Er komen gevaarlijke stoffen vrij',
+                    data: [1, 4, 1, 4, 1, 4],
+                }, {
+                    question: 'Lang - kort - lang',
+                    answer: 'Verzoek tot bedienen van de brug of sluis',
+                    data: [4, 1, 4],
+                }, {
+                    question: 'Lange stoot met tussen-poos van 1 minuut',
+                    answer: 'Mistsein varend',
+                    data: [4, 60, 4],
+                }, {
+                    question: 'Reeks klokslagen met tussenpoos van 1 minuut',
+                    answer: 'Mistsein stilliggend',
+                    data: [4, 4, 4, 60],
+                },
+            ]
+        })
+    }).mount('#app')
+</script>
+</body>
+</html>
